@@ -2,7 +2,7 @@
 
 This is the rankgun application centre which is designed to interact with the RankGun API made using .... .
 
-The RankGun application centre allows people to complete questions in exchanged for a role at your group.
+The RankGun application centre allows people to complete questions in exchange for a role in your group.
 
 Please keep in mind this software is avaible for everyone under the [RankGun PolyForm Shield License](/license.md).
 
