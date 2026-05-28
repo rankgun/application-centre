@@ -1,16 +1,14 @@
 {
   "name": "application-centre",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The core package powering Rankgun's Application Centre for groups.",
   "scripts": {
-    "build": "rbxtsc",
-    "watch": "rbxtsc -w"
+    "compile": "rbxtsc --verbose",
+    "build-file": "rojo build --output build/application-centre.rbxm",
+    "build": "npm run compile && npm run build-file"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "author": "Rankgun",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "devDependencies": {
     "@rbxts/compiler-types": "^3.0.0-types.0",
     "@rbxts/types": "^1.0.920",
@@ -23,5 +21,14 @@
     "prettier": "^3.8.3",
     "roblox-ts": "^3.0.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@rbxts-js/react": "^17.3.7-ts.1",
+    "@rbxts/banner-notify": "^1.0.1",
+    "@rbxts/react": "^17.3.7-ts.1",
+    "@rbxts/react-roblox": "^17.3.7-ts.1",
+    "@rbxts/remo": "^1.5.3",
+    "@rbxts/services": "^1.6.0",
+    "@rbxts/t": "^3.2.1"
   }
 }

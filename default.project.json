@@ -1,5 +1,5 @@
 {
-	"name": "roblox-ts-model",
+	"name": "rankgun-application-centre",
 	"globIgnorePaths": [
 		"**/package.json",
 		"**/tsconfig.json"
@@ -12,6 +12,9 @@
 				"$className": "Folder",
 				"@rbxts": {
 					"$path": "node_modules/@rbxts"
+				},
+				"@rbxts-js": {
+					"$path": "node_modules/@rbxts-js"
 				}
 			}
 		}
