@@ -36,7 +36,7 @@ export function Init({ workspaceId, apiToken, verbose = false }: RankgunInitConf
 
         if (applications.forms) {
             // only return applications that are active.
-            return applications.forms?.filter((application) => application.isActive );
+            return applications.forms.filter((application) => application.isActive);
         } else {
             notifyError(player, "Couldn't load applications", "The centre failed to load applications. Try again later")
             return [];
