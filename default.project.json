@@ -1,5 +1,5 @@
 {
-	"name": "rankgun-application-centre",
+	"name": "MainModule",
 	"globIgnorePaths": [
 		"**/package.json",
 		"**/tsconfig.json"
