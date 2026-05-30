@@ -8,7 +8,7 @@
     "build": "npm run compile && npm run build-file"
   },
   "author": "Rankgun",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "RankGunPolyFormShieldLicense1.0.0",
   "devDependencies": {
     "@rbxts/compiler-types": "^3.0.0-types.0",
     "@rbxts/types": "^1.0.920",
