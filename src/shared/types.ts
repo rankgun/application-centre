@@ -93,6 +93,14 @@ export const tMarkingResult = t.interface({
     errorMessage: t.optional(t.string)
 });
 
+// init config
+
+export type RankgunInitConfig = {
+    workspaceId: string,
+    apiToken: string,
+    verbose?: boolean
+};
+
 // response types (for the server)
 
 type BaseResponse = {
