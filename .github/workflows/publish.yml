@@ -32,7 +32,9 @@ jobs:
         run: npm run compile
       
       - name: Build  
-        run: npm run build-file
+        run: |
+          mkdir -p build
+          npm run build-file
 
       - name: Rename build
         run: mv build/application-centre.rbxm application-centre-${{ github.event.release.tag_name }}.rbxm
