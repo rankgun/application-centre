@@ -5,6 +5,7 @@ import { ApplicationCallback, ApplicationDetails } from "shared/types";
 
 import ApplicationItem from "./ApplicationItem";
 import LoadingIcon from "./LoadingIcon";
+import Text from "./Text";
 
 export default function ApplicationList({ children, startApplication }: React.PropsWithChildren & ApplicationCallback) {
     const [applicationList, setApplicationList] = useState<ApplicationDetails[]>();
@@ -25,10 +26,15 @@ export default function ApplicationList({ children, startApplication }: React.Pr
             <uigridlayout CellSize={new UDim2(1, 0, 0.2, 0)} CellPadding={new UDim2(0, 0, 0.02, 0)} />
 
             {applicationList ? 
-                applicationList.map((application) => (
-                    <ApplicationItem {...application} startApplication={startApplication} />
-                )) : 
-                <LoadingIcon /> 
+                (applicationList.size() === 0) ?
+                    <Text Text="No applications in this workspace yet. Check they are public and active." TextTransparency={0.5} 
+                          Size={new UDim2(1, 0, 0.05, 0)}>
+                        <uitextsizeconstraint MaxTextSize={30} />
+                    </Text> :
+                    applicationList.map((application) => (
+                        <ApplicationItem {...application} startApplication={startApplication} />
+                    ))
+                : <LoadingIcon /> 
             }
         </scrollingframe>
     )
