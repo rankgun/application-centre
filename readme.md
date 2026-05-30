@@ -12,7 +12,7 @@ The centre itself is a self-contained ModuleScript, compiled with roblox-ts and 
 
 ```
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RankgunModule = require(ReplicatedStorage:FindFirstChild("rankgun-application-centre"))
+local RankgunModule = require(ReplicatedStorage:FindFirstChild("rankgun-application-centre")) --Or asset ID (117860497552510)
 
 RankgunModule.Init({
     workspaceId = "<workspace-id>",
@@ -45,4 +45,4 @@ Issues may be opened to report issues with the application centre, NOT for custo
 
 ## Publishing
 
-Can possibly use [Open Cloud API](https://create.roblox.com/docs/cloud/reference/features/assets#Assets_UpdateAsset) with a GitHub action to automate updating the module.
+Github workflow automatically builds and pushes to roblox & uploads to releases. 

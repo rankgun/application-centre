@@ -1,0 +1,84 @@
+name: Build Production Release
+
+on:
+  release:
+    branches: [main]
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rojo
+        run: cargo install rojo --version 7.7.0-rc.1
+
+      - name: Install dependencies
+        run: npm i 
+
+      - name: Compile Roblox Ts 
+        run: npm run compile
+      
+      - name: Build  
+        run: build-file
+
+      - name: Rename build
+        run: mv build/application-centre.rbxm application-centre-${{ github.event.release.tag_name }}.rbxm
+
+      - name: Attach build to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: application-centre-*.rbxm
+
+      - name: Publish to Roblox
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+          ROBLOX_GROUP_ID: ${{ secrets.ROBLOX_GROUP_ID }}
+          ASSET_ID: "117860497552510"
+        run: |
+          FILE="application-centre-${{ github.event.release.tag_name }}.rbxm"
+
+          REQUEST_JSON=$(jq -n \
+            --arg assetId "$ASSET_ID" \
+            --argjson groupId "$ROBLOX_GROUP_ID" \
+            '{assetType:"Model", assetId:$assetId, creationContext:{creator:{groupId:$groupId}}}')
+
+          echo "Uploading $FILE to asset $ASSET_ID..."
+          RESPONSE=$(curl -sS --fail-with-body --request PATCH \
+            "https://apis.roblox.com/assets/v1/assets/${ASSET_ID}" \
+            --header "x-api-key: ${ROBLOX_API_KEY}" \
+            --form "request=${REQUEST_JSON}" \
+            --form "fileContent=@${FILE};type=model/x-rbxm")
+
+          echo "Response: $RESPONSE"
+          OP_ID=$(echo "$RESPONSE" | jq -r '.path' | sed 's#operations/##')
+          if [ -z "$OP_ID" ] || [ "$OP_ID" = "null" ]; then
+            echo "::error::No operation ID returned"; exit 1
+          fi
+
+          # Poll until the operation completes
+          for i in $(seq 1 30); do
+            sleep 2
+            OP=$(curl -sS --fail-with-body \
+              "https://apis.roblox.com/assets/v1/operations/${OP_ID}" \
+              --header "x-api-key: ${ROBLOX_API_KEY}")
+            if [ "$(echo "$OP" | jq -r '.done')" = "true" ]; then
+              echo "Done: $OP"
+              MOD=$(echo "$OP" | jq -r '.response.moderationResult.moderationState // "unknown"')
+              echo "Moderation: $MOD"
+              exit 0
+            fi
+          done
+          echo "::error::Operation did not complete in time"; exit 1
