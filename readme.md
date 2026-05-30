@@ -23,7 +23,8 @@ moduleInstance.Parent = ReplicatedStorage
 local RankgunModule = require(moduleInstance)
 RankgunModule.Init({
     workspaceId = "<workspace-id>",
-    apiToken = "<api-token>"
+    apiToken = "<api-token>",
+    -- verbose = true, -- optional; logs API requests/responses to the server console for debugging
 })
 ```
 

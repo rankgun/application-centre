@@ -2,9 +2,9 @@ import { Players, DataStoreService } from "@rbxts/services";
 import BannerNotify from "@rbxts/banner-notify";
 
 import { remotes } from "shared/remotes";
-import { Application } from "shared/types";
+import { Application, RankgunInitConfig } from "shared/types";
 
-import { getApplication, getApplicationList, setRank } from "./rankgunApi";
+import { getApplication, getApplicationList, setRank, setVerbose } from "./rankgunApi";
 
 const CooldownDatastore = DataStoreService.GetDataStore("rankgun-application-cooldown");
 
@@ -24,7 +24,8 @@ function addClientLoader(player: Player) {
 
 const applicationCache: { [applicationId: string]: Application } = {};
 
-export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken: string }) {
+export function Init({ workspaceId, apiToken, verbose = false }: RankgunInitConfig) {
+    setVerbose(verbose);
     print("[Rankgun] Initialising remote listeners");
 
     BannerNotify.InitServer();
