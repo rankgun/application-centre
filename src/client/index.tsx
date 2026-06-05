@@ -1,7 +1,7 @@
 import "@rbxts-js/react";
 import React, { StrictMode, useState } from "@rbxts/react";
 import { createPortal, createRoot } from "@rbxts/react-roblox";
-import { Players, StarterGui } from "@rbxts/services";
+import { Players, StarterGui, LogService } from "@rbxts/services";
 import BannerNotify from "@rbxts/banner-notify";
 
 import { remotes } from "shared/remotes";
@@ -136,7 +136,7 @@ function DisableGui() {
 }
 
 export function Init() {
-    print("[Rankgun] Initialising client UI");
+    LogService.Info("[Rankgun] Initialising client UI");
 
     const portal = createPortal(<CentreGui />, playerGui);
     root.render(<StrictMode>{portal}</StrictMode>);
