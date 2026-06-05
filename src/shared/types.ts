@@ -9,7 +9,6 @@ export type ApplicationDetails = {
     name: string,
     description: string,
     isActive: boolean,
-    isPublic: boolean,
     targetRankName: string,
     targetRankId: number,
     passPercentage: number,
@@ -21,7 +20,6 @@ const applicationDetailsInterface = {
     name: t.string,
     description: t.string,
     isActive: t.boolean,
-    isPublic: t.boolean,
     targetRankName: t.string,
     targetRankId: t.number,
     passPercentage: t.number,
@@ -92,6 +90,14 @@ export const tMarkingResult = t.interface({
     rankName: t.string,
     errorMessage: t.optional(t.string)
 });
+
+// init config
+
+export type RankgunInitConfig = {
+    workspaceId: string,
+    apiToken: string,
+    verbose?: boolean
+};
 
 // response types (for the server)
 

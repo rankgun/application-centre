@@ -2,9 +2,9 @@ import { Players, DataStoreService, LogService } from "@rbxts/services";
 import BannerNotify from "@rbxts/banner-notify";
 
 import { remotes } from "shared/remotes";
-import { Application } from "shared/types";
+import { Application, RankgunInitConfig } from "shared/types";
 
-import { getApplication, getApplicationList, setRank } from "./rankgunApi";
+import { getApplication, getApplicationList, setRank, setVerbose } from "./rankgunApi";
 
 const CooldownDatastore = DataStoreService.GetDataStore("rankgun-application-cooldown");
 
@@ -34,8 +34,8 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
         const applications = getApplicationList(apiToken);
 
         if (applications.forms) {
-            // only return applications that are active and public
-            return applications.forms?.filter((application) => application.isActive && !application.isPublic);
+            // only return applications that are active.
+            return applications.forms.filter((application) => application.isActive);
         } else {
             notifyError(player, "Couldn't load applications", "The centre failed to load applications. Try again later")
             return [];
