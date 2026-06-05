@@ -5,6 +5,7 @@ import { remotes } from "shared/remotes";
 import { Application } from "shared/types";
 
 import { getApplication, getApplicationList, setRank } from "./rankgunApi";
+import { Telemetry } from "./telemetry";
 
 const CooldownDatastore = DataStoreService.GetDataStore("rankgun-application-cooldown");
 
@@ -28,14 +29,19 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
     print("[Rankgun] Initialising remote listeners");
 
     BannerNotify.InitServer();
+    Telemetry.init({ workspaceId, apiToken });
 
     // set up remote listeners
-    remotes.getCentreData.onRequest((player) => { 
+    remotes.getCentreData.onRequest((player) => {
         const applications = getApplicationList(apiToken);
 
         if (applications.forms) {
             // only return applications that are active and public
-            return applications.forms?.filter((application) => application.isActive && !application.isPublic);
+            const visible = applications.forms.filter(
+                (application) => application.isActive && !application.isPublic,
+            );
+            Telemetry.track("forms_loaded", { formCount: visible.size() });
+            return visible;
         } else {
             notifyError(player, "Couldn't load applications", "The centre failed to load applications. Try again later")
             return [];
@@ -64,7 +70,7 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
                 const answers = [ ...question.incorrectAnswers, question.correctAnswer ];
                 random.Shuffle(answers);
 
-                return { 
+                return {
                     id: question.id,
                     order: question.order,
                     questionText: question.questionText,
@@ -75,6 +81,7 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
                 }
             });
 
+            Telemetry.track("application_started", { applicationId });
             return questions;
         } else {
             notifyError(player, "Couldn't load application list", "Rankgun couldn't fetch a list of applications.")
@@ -107,13 +114,29 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
             const score = (correctAnswers / application.questions.size());
             const hasPassed = score >= (application.passPercentage / 100);
 
+            Telemetry.track("application_submitted", {
+                applicationId,
+                passed: hasPassed,
+                score,
+                targetRankId: application.targetRankId,
+            });
+
             // rank the user only if they have passed
             if (hasPassed) {
                 const rankResponse = setRank(player, application.targetRankId, workspaceId, apiToken);
-                if (!rankResponse || rankResponse.StatusCode !== 200) {
+                const ranked = rankResponse !== undefined && rankResponse.StatusCode === 200;
+
+                Telemetry.track("rank_result", {
+                    applicationId,
+                    targetRankId: application.targetRankId,
+                    success: ranked,
+                    httpStatus: rankResponse ? rankResponse.StatusCode : undefined,
+                });
+
+                if (!ranked) {
                     warn("[Rankgun] Failed to rank eligible user");
-                    if (rankResponse.Body) warn(rankResponse.Body);
-                    
+                    if (rankResponse && rankResponse.Body) warn(rankResponse.Body);
+
                     return { passed: false, score, rankName: application.targetRankName, errorMessage: "You passed, but Rankgun couldn't give you the target rank." };
                 }
             }
