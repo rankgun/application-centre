@@ -5,6 +5,12 @@ import { Telemetry } from "./telemetry";
 
 const BASE_URL = "https://api.rankgun.works";
 
+let verbose = false;
+
+export function setVerbose(value: boolean) {
+    verbose = value;
+}
+
 /** Report a non-200 response as an api_error event (status + short code only). */
 function reportError(call: string, statusCode: number, body: object) {
     if (statusCode === 200) {
@@ -18,6 +24,8 @@ function reportError(call: string, statusCode: number, body: object) {
 }
 
 function httpRequest(path: string, apiToken: string, method: "GET" | "POST", body?: string): { Body: object, StatusCode: number } {
+    if (verbose) print(`[Rankgun] → ${method} ${path}${body ? ` ${body}` : ""}`);
+
     const request = HttpService.RequestAsync({
         Url: `${BASE_URL}${path}`,
         Method: method,
@@ -28,11 +36,14 @@ function httpRequest(path: string, apiToken: string, method: "GET" | "POST", bod
     });
 
     if (request.Body) {
+        const decodedBody = HttpService.JSONDecode(request.Body) as object;
+        if (verbose) print(`[Rankgun] ← ${request.StatusCode} ${HttpService.JSONEncode(decodedBody)}`);
         return {
-            Body: HttpService.JSONDecode(request.Body) as object,
+            Body: decodedBody,
             StatusCode: request.StatusCode
         }
     } else {
+        if (verbose) warn(`[Rankgun] ← ${request.StatusCode} (empty body)`);
         return {
             Body: { success: false, error: "Failed to fetch from Rankgun API", code: "API_FAILED" },
             StatusCode: 500

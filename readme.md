@@ -23,14 +23,15 @@ moduleInstance.Parent = ReplicatedStorage
 local RankgunModule = require(moduleInstance)
 RankgunModule.Init({
     workspaceId = "<workspace-id>",
-    apiToken = "<api-token>"
+    apiToken = "<api-token>",
+    -- verbose = true, -- optional; logs API requests/responses to the server console for debugging
 })
 ```
 
 > [!TIP]
 > As a RankGun customer, use the loader scripts available for download in your [Workspace](https://www.rankgun.works/workspace/), which will pre-fill the necessary details and automatically update.
 
-Before using, you must enable a few Experience Settings - namely, Security -> Allow HTTP Requests and Allow Loading Third Party Assets. You may also wish to enable DataStores in Studio to allow for playtesting.
+Before using, you must enable a few Experience Settings - namely, Security -> Allow HTTP Requests and Allow Loading Third Party Assets. Be sure to enable "enable studio access to api services" for cooldown logic if you wish to develop on studio. 
 
 ## Telemetry
 

@@ -1,10 +1,10 @@
-import { Players, DataStoreService } from "@rbxts/services";
+import { Players, DataStoreService, LogService } from "@rbxts/services";
 import BannerNotify from "@rbxts/banner-notify";
 
 import { remotes } from "shared/remotes";
-import { Application } from "shared/types";
+import { Application, RankgunInitConfig } from "shared/types";
 
-import { getApplication, getApplicationList, setRank } from "./rankgunApi";
+import { getApplication, getApplicationList, setRank, setVerbose } from "./rankgunApi";
 import { Telemetry } from "./telemetry";
 
 const CooldownDatastore = DataStoreService.GetDataStore("rankgun-application-cooldown");
@@ -25,8 +25,10 @@ function addClientLoader(player: Player) {
 
 const applicationCache: { [applicationId: string]: Application } = {};
 
-export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken: string }) {
-    print("[Rankgun] Initialising remote listeners");
+export function Init({ workspaceId, apiToken, verbose }: RankgunInitConfig) {
+    if (verbose) setVerbose(true);
+
+    LogService.Info("[Rankgun] Initialising remote listeners");
 
     BannerNotify.InitServer();
     Telemetry.init({ workspaceId, apiToken });
@@ -36,10 +38,8 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
         const applications = getApplicationList(apiToken);
 
         if (applications.forms) {
-            // only return applications that are active and public
-            const visible = applications.forms.filter(
-                (application) => application.isActive && !application.isPublic,
-            );
+            // only return applications that are active.
+            const visible = applications.forms.filter((application) => application.isActive);
             Telemetry.track("forms_loaded", { formCount: visible.size() });
             return visible;
         } else {
@@ -96,13 +96,13 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
         const application = (applicationCache[applicationId]) ?
             applicationCache[applicationId] :
             getApplication(apiToken, applicationId).form;
-            
+
         // set time the application was most recently completed
         CooldownDatastore.SetAsync(`${applicationId}-${player.UserId}`, os.time());
 
         if (application) {
             let correctAnswers = 0;
-            
+
             // iterate over each question, finding correct answers
             for (const question of application.questions) {
                 const answer = answers.find((a) => a.questionId === question.id);
@@ -134,8 +134,8 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
                 });
 
                 if (!ranked) {
-                    warn("[Rankgun] Failed to rank eligible user");
-                    if (rankResponse && rankResponse.Body) warn(rankResponse.Body);
+                    LogService.Warn("[Rankgun] Failed to rank eligible user");
+                    if (rankResponse && rankResponse.Body) LogService.Warn("[Rankgun] Response Body", rankResponse.Body);
 
                     return { passed: false, score, rankName: application.targetRankName, errorMessage: "You passed, but Rankgun couldn't give you the target rank." };
                 }

@@ -1,6 +1,6 @@
 {
-	"typescript.tsdk": "node_modules/typescript/lib",
-	"files.eol": "\n",
+	"js/ts.tsdk.path": "node_modules/roblox-ts/node_modules/typescript/lib",
+	"files.eol": "\n", 
 	"[typescript]": {
 		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 		"editor.formatOnSave": true
@@ -12,5 +12,4 @@
 	"eslint.run": "onType",
 	"eslint.format.enable": true,
 	"eslint.useFlatConfig": false,
-	"js/ts.tsdk.path": "node_modules/typescript/lib"
 }
