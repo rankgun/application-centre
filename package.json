@@ -11,7 +11,7 @@
   "license": "RankGunPolyFormShieldLicense1.0.0",
   "devDependencies": {
     "@rbxts/compiler-types": "^3.0.0-types.0",
-    "@rbxts/types": "^1.0.920",
+    "@rbxts/types": "^1.0.925",
     "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.3",
     "eslint": "^10.4.0",
