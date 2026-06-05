@@ -1,4 +1,4 @@
-import { Players, DataStoreService } from "@rbxts/services";
+import { Players, DataStoreService, LogService } from "@rbxts/services";
 import BannerNotify from "@rbxts/banner-notify";
 
 import { remotes } from "shared/remotes";
@@ -24,9 +24,8 @@ function addClientLoader(player: Player) {
 
 const applicationCache: { [applicationId: string]: Application } = {};
 
-export function Init({ workspaceId, apiToken, verbose = false }: RankgunInitConfig) {
-    setVerbose(verbose);
-    print("[Rankgun] Initialising remote listeners");
+export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken: string }) {
+    LogService.Info("[Rankgun] Initialising remote listeners");
 
     BannerNotify.InitServer();
 
@@ -112,8 +111,8 @@ export function Init({ workspaceId, apiToken, verbose = false }: RankgunInitConf
             if (hasPassed) {
                 const rankResponse = setRank(player, application.targetRankId, workspaceId, apiToken);
                 if (!rankResponse || rankResponse.StatusCode !== 200) {
-                    warn("[Rankgun] Failed to rank eligible user");
-                    if (rankResponse.Body) warn(rankResponse.Body);
+                    LogService.Warn("[Rankgun] Failed to rank eligible user");
+                    if (rankResponse.Body) LogService.Warn("[Rankgun] Response Body", rankResponse.Body);
                     
                     return { passed: false, score, rankName: application.targetRankName, errorMessage: "You passed, but Rankgun couldn't give you the target rank." };
                 }
