@@ -1,12 +1,26 @@
 import { HttpService } from "@rbxts/services";
 import { ApplicationResponse, ApplicationsResults } from "shared/types";
 
+import { Telemetry } from "./telemetry";
+
 const BASE_URL = "https://api.rankgun.works";
 
 let verbose = false;
 
 export function setVerbose(value: boolean) {
     verbose = value;
+}
+
+/** Report a non-200 response as an api_error event (status + short code only). */
+function reportError(call: string, statusCode: number, body: object) {
+    if (statusCode === 200) {
+        return;
+    }
+    Telemetry.track("api_error", {
+        call,
+        httpStatus: statusCode,
+        code: (body as { code?: string }).code,
+    });
 }
 
 function httpRequest(path: string, apiToken: string, method: "GET" | "POST", body?: string): { Body: object, StatusCode: number } {
@@ -39,11 +53,13 @@ function httpRequest(path: string, apiToken: string, method: "GET" | "POST", bod
 
 export function getApplicationList(apiToken: string): ApplicationsResults {
     const apiResponse = httpRequest(`/api/applications`, apiToken, "GET");
+    reportError("list", apiResponse.StatusCode, apiResponse.Body);
     return apiResponse.Body as ApplicationsResults;
 }
 
 export function getApplication(apiToken: string, applicationId: string): ApplicationResponse {
     const apiResponse = httpRequest(`/api/applications/forms/${applicationId}`, apiToken, "GET");
+    reportError("get", apiResponse.StatusCode, apiResponse.Body);
     return apiResponse.Body as ApplicationResponse;
 }
 
@@ -56,5 +72,6 @@ export function setRank(player: Player, rank: number, workspaceId: string, apiTo
             workspaceId: workspaceId,
         }),
     );
+    reportError("setrank", apiResponse.StatusCode, apiResponse.Body);
     return apiResponse;
 }

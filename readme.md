@@ -33,6 +33,22 @@ RankgunModule.Init({
 
 Before using, you must enable a few Experience Settings - namely, Security -> Allow HTTP Requests and Allow Loading Third Party Assets. Be sure to enable "enable studio access to api services" for cooldown logic if you wish to develop on studio. 
 
+## Telemetry
+
+So that RankGun can support self-hosted centres, the centre reports lightweight, aggregate
+operational telemetry to RankGun's API (`/api/telemetry`) using the same API key it already
+uses for ranking. This lets RankGun see whether a centre is online, what build it's running,
+how applications are converting, and where API calls are failing.
+
+It sends only instance-level facts (centre version, place/universe/server id, environment,
+current player count, uptime) and a small set of events: `centre_boot`, `heartbeat`,
+`forms_loaded`, `application_started`, `application_submitted`, `rank_result`, and
+`api_error` (HTTP status + short error code only).
+
+**No end-user data is ever collected** — no UserIds, usernames, question text, submitted
+answers, or raw error bodies. All requests are best-effort and run on a background thread, so
+telemetry never affects gameplay. See `src/server/telemetry.ts`.
+
 ## Development
 
 The client's GUI is rendered with react-lua components; it replicates using a LocalScript parented to the PlayerGui. We use Remo for remote declaration and to allow for full types.

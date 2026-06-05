@@ -26,9 +26,12 @@ jobs:
         run: cargo install rojo --version 7.7.0-rc.1
 
       - name: Install dependencies
-        run: npm i 
+        run: npm i
 
-      - name: Compile Roblox Ts 
+      - name: Stamp release version
+        run: echo "export const CENTRE_VERSION = \"${{ github.event.release.tag_name }}\";" > src/version.ts
+
+      - name: Compile Roblox Ts
         run: npm run compile
       
       - name: Build  

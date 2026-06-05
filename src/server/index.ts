@@ -5,6 +5,7 @@ import { remotes } from "shared/remotes";
 import { Application, RankgunInitConfig } from "shared/types";
 
 import { getApplication, getApplicationList, setRank, setVerbose } from "./rankgunApi";
+import { Telemetry } from "./telemetry";
 
 const CooldownDatastore = DataStoreService.GetDataStore("rankgun-application-cooldown");
 
@@ -24,18 +25,23 @@ function addClientLoader(player: Player) {
 
 const applicationCache: { [applicationId: string]: Application } = {};
 
-export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken: string }) {
+export function Init({ workspaceId, apiToken, verbose }: RankgunInitConfig) {
+    if (verbose) setVerbose(true);
+
     LogService.Info("[Rankgun] Initialising remote listeners");
 
     BannerNotify.InitServer();
+    Telemetry.init({ workspaceId, apiToken });
 
     // set up remote listeners
-    remotes.getCentreData.onRequest((player) => { 
+    remotes.getCentreData.onRequest((player) => {
         const applications = getApplicationList(apiToken);
 
         if (applications.forms) {
             // only return applications that are active.
-            return applications.forms.filter((application) => application.isActive);
+            const visible = applications.forms.filter((application) => application.isActive);
+            Telemetry.track("forms_loaded", { formCount: visible.size() });
+            return visible;
         } else {
             notifyError(player, "Couldn't load applications", "The centre failed to load applications. Try again later")
             return [];
@@ -64,7 +70,7 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
                 const answers = [ ...question.incorrectAnswers, question.correctAnswer ];
                 random.Shuffle(answers);
 
-                return { 
+                return {
                     id: question.id,
                     order: question.order,
                     questionText: question.questionText,
@@ -75,6 +81,7 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
                 }
             });
 
+            Telemetry.track("application_started", { applicationId });
             return questions;
         } else {
             notifyError(player, "Couldn't load application list", "Rankgun couldn't fetch a list of applications.")
@@ -89,13 +96,13 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
         const application = (applicationCache[applicationId]) ?
             applicationCache[applicationId] :
             getApplication(apiToken, applicationId).form;
-            
+
         // set time the application was most recently completed
         CooldownDatastore.SetAsync(`${applicationId}-${player.UserId}`, os.time());
 
         if (application) {
             let correctAnswers = 0;
-            
+
             // iterate over each question, finding correct answers
             for (const question of application.questions) {
                 const answer = answers.find((a) => a.questionId === question.id);
@@ -107,13 +114,29 @@ export function Init({ workspaceId, apiToken }: { workspaceId: string, apiToken:
             const score = (correctAnswers / application.questions.size());
             const hasPassed = score >= (application.passPercentage / 100);
 
+            Telemetry.track("application_submitted", {
+                applicationId,
+                passed: hasPassed,
+                score,
+                targetRankId: application.targetRankId,
+            });
+
             // rank the user only if they have passed
             if (hasPassed) {
                 const rankResponse = setRank(player, application.targetRankId, workspaceId, apiToken);
-                if (!rankResponse || rankResponse.StatusCode !== 200) {
+                const ranked = rankResponse !== undefined && rankResponse.StatusCode === 200;
+
+                Telemetry.track("rank_result", {
+                    applicationId,
+                    targetRankId: application.targetRankId,
+                    success: ranked,
+                    httpStatus: rankResponse ? rankResponse.StatusCode : undefined,
+                });
+
+                if (!ranked) {
                     LogService.Warn("[Rankgun] Failed to rank eligible user");
-                    if (rankResponse.Body) LogService.Warn("[Rankgun] Response Body", rankResponse.Body);
-                    
+                    if (rankResponse && rankResponse.Body) LogService.Warn("[Rankgun] Response Body", rankResponse.Body);
+
                     return { passed: false, score, rankName: application.targetRankName, errorMessage: "You passed, but Rankgun couldn't give you the target rank." };
                 }
             }
